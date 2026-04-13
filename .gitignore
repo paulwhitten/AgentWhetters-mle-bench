@@ -1,0 +1,24 @@
+# Credentials & secrets
+.env
+*.env
+kaggle.json
+
+# Python
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+.venv
+
+# ML training artifacts
+catboost_info/
+
+# OS
+.DS_Store
+
+# Logs & temp
+temp/
+nohup.out
+*.log

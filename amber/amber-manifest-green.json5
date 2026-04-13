@@ -1,0 +1,49 @@
+{
+  manifest_version: "0.1.0",
+  program: {
+    image: "ghcr.io/rdi-foundation/mle-bench-green:v1.0",
+    entrypoint: [
+      "/opt/conda/envs/green/bin/python",
+      "/home/green/src/server.py",
+      "--host",
+      "0.0.0.0",
+      "--port",
+      "8081"
+    ],
+    env: {
+      PROXY_URL: "${slots.proxy.url}",
+      LOG_LEVEL: "INFO",
+      KAGGLE_USERNAME: "${config.kaggle_username}",
+      KAGGLE_KEY: "${config.kaggle_key}"
+    },
+    network: {
+      endpoints: [
+        { name: "endpoint", port: 8081 }
+      ]
+    }
+  },
+  config_schema: {
+    type: "object",
+    properties: {
+      kaggle_username: { type: "string", secret: true },
+      kaggle_key: { type: "string", secret: true },
+    },
+    required: ["kaggle_username", "kaggle_key"],
+    additionalProperties: false
+  },
+  slots: {
+    proxy: { kind: "a2a" }
+  },
+  provides: {
+    a2a: { kind: "a2a", endpoint: "endpoint" }
+  },
+  exports: {
+    a2a: "a2a"
+  },
+  metadata: {
+    assessment_config: {
+      "competition_id": "spaceship-titanic",
+    },
+    participant_roles: ["agent"]
+  }
+}
