@@ -1,16 +1,15 @@
-FROM mlebench-env
+FROM ghcr.io/astral-sh/uv:python3.13-bookworm
 
-RUN conda create -n green python=3.11 -y
-COPY requirements.txt /tmp/green-requirements.txt
-RUN conda run -n green pip install -r /tmp/green-requirements.txt && \
-    conda run -n green pip install -e /mlebench
+RUN adduser --disabled-password agent
+USER agent
+WORKDIR /home/agent
 
-RUN mkdir cache && \
-    chown nonroot cache
+COPY --chown=agent pyproject.toml uv.lock README.md ./
+COPY --chown=agent src src
 
-COPY src /home/green/src
+RUN --mount=type=cache,target=/home/agent/.cache/uv,uid=1000 \
+    uv sync --locked
 
-USER nonroot
-ENTRYPOINT ["/opt/conda/envs/green/bin/python", "/home/green/src/server.py"]
-CMD ["--host", "0.0.0.0"]
-EXPOSE 9009
+ENTRYPOINT ["uv", "run", "src/purple/server.py"]
+CMD ["--host", "0.0.0.0", "--port", "8080"]
+EXPOSE 8080
