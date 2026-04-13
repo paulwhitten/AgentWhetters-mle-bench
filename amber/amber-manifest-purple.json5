@@ -3,36 +3,31 @@
   program: {
     image: "ghcr.io/paulwhitten/agentwhetters-mle-bench:latest",
     entrypoint: [
-      "/opt/conda/envs/green/bin/python",
-      "/home/green/src/server.py",
+      "uv",
+      "run",
+      "src/purple/server.py",
       "--host",
       "0.0.0.0",
       "--port",
-      "8081"
+      "8080"
     ],
     env: {
-      PROXY_URL: "${slots.proxy.url}",
-      LOG_LEVEL: "INFO",
-      KAGGLE_USERNAME: "${config.kaggle_username}",
-      KAGGLE_KEY: "${config.kaggle_key}"
+      OPENAI_API_KEY: "${config.openai_api_key}",
+      LOG_LEVEL: "INFO"
     },
     network: {
       endpoints: [
-        { name: "endpoint", port: 8081 }
+        { name: "endpoint", port: 8080 }
       ]
     }
   },
   config_schema: {
     type: "object",
     properties: {
-      kaggle_username: { type: "string", secret: true },
-      kaggle_key: { type: "string", secret: true },
+      openai_api_key: { type: "string", secret: true }
     },
-    required: ["kaggle_username", "kaggle_key"],
+    required: ["openai_api_key"],
     additionalProperties: false
-  },
-  slots: {
-    proxy: { kind: "a2a" }
   },
   provides: {
     a2a: { kind: "a2a", endpoint: "endpoint" }
