@@ -34,7 +34,7 @@ target for later phases.
 **Phases A–C** use gpt-4o-mini with function calling (strict mode) to
 analyze the data, refine features, and train an initial ensemble.
 
-**Phase D** iterates through a 17-level hint ladder, alternating
+**Phase D** iterates through a 19-level hint ladder, alternating
 between feature engineering rounds and model rounds until the time
 budget runs out.
 
@@ -63,21 +63,31 @@ Key rules and where they appear:
 
 ## Hint Ladder
 
-Phase D uses a progressive hint ladder that feeds the LLM structured
-improvement suggestions. Hints are ordered by expected impact per
-second of compute time:
+Phase D uses a progressive 19-level hint ladder that feeds the LLM
+structured improvement suggestions. MODEL hints are interleaved early
+so they are reachable within the typical 9–12 round budget:
 
-| Level | Hint type | Technique |
-|-------|-----------|-----------|
+| Level | Type | Technique |
+|-------|-------|-----------|
 | 0 | FE | Kitchen sink — all applicable transforms at once |
-| 1–2 | FE | Data quality cleanup, target encoding |
-| 3–5 | FE | Feature interactions, aggregation, rank transforms |
-| 6–8 | FE | Frequency encoding, mutual info selection, PCA + clusters |
-| 9–12 | FE | Deviation-from-group, imputation, permutation pruning, pseudo-labeling |
-| 13 | MODEL | Low learning rate + stochastic subsampling |
-| 14 | MODEL | Stacking (LGBM + XGB + ExtraTrees with meta-learner) |
-| 15 | MODEL | Optuna hyperparameter tuning |
-| 16 | MODEL | Threshold optimization / prediction clipping |
+| 1 | FE | Data quality cleanup |
+| 2 | FE | Target encoding |
+| 3 | FE | Error analysis — targeted features |
+| 4 | FE | Feature interactions |
+| 5 | MODEL | Low learning rate + stochastic subsampling |
+| 6 | FE | Aggregation features |
+| 7 | FE | Logical imputation + binning |
+| 8 | MODEL | Stacking (LGBM + XGB + ExtraTrees meta-learner) |
+| 9 | FE | Rank and power transforms |
+| 10 | MODEL | Optuna hyperparameter tuning |
+| 11 | FE | Frequency encoding + outlier clipping |
+| 12 | MODEL | Threshold optimization / prediction clipping |
+| 13 | FE | Mutual info selection |
+| 14 | FE | Permutation pruning |
+| 15 | FE | Adversarial validation |
+| 16 | FE | Deviation-from-group |
+| 17 | FE | Pseudo-labeling |
+| 18 | FE | PCA + K-Means clusters |
 
 FE hints add features to a cumulative snapshot — each round builds on
 the best prior state rather than restarting from raw data. MODEL hints
@@ -104,6 +114,12 @@ estimator.
 When `PURPLE_FAST_CV=1` (default), Phase D FE rounds evaluate with a
 single LightGBM model (~11 s) instead of the full ensemble (~56 s).
 This allows roughly 3× more iteration rounds within the same budget.
+
+Once stacking wins a round, subsequent FE rounds automatically switch
+from LGBM-only to re-stacking (~24 s) so the comparison is
+apples-to-apples. Without this, LGBM-only CV can never beat a
+stacking OOF score and every post-stacking FE round would be wasted.
+
 A final ensemble retrain runs after Phase D completes, but only when
-the best round was a fast-CV round — MODEL hint rounds that produce
-stacking or tuned submissions are preserved as-is.
+the best round was a fast-CV round — stacking submissions are
+preserved as-is.
