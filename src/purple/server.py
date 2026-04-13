@@ -4329,12 +4329,20 @@ class MLPurpleAgent(AgentExecutor):
                     if not is_model_hint:
                         # Direct model eval — no LLM, just run the pipeline
                         submission_path.unlink(missing_ok=True)
+                        # After stacking wins, FE rounds must re-stack to get
+                        # a comparable OOF score (LGBM-only can never beat it).
+                        if _best_is_stacking:
+                            _restack_config = dict(_std_model_config, model_type="stack")
+                            _use_fast_cv = False
+                        else:
+                            _restack_config = _std_model_config
+                            _use_fast_cv = FAST_CV
                         try:
                             model_output_d = await asyncio.wait_for(
                                 asyncio.to_thread(
-                                    _exec_model_pipeline, _std_model_config,
+                                    _exec_model_pipeline, _restack_config,
                                     exec_globals, str(data_dir),
-                                    FAST_CV,
+                                    _use_fast_cv,
                                 ),
                                 timeout=300.0,
                             )
@@ -4376,7 +4384,7 @@ class MLPurpleAgent(AgentExecutor):
                         best_cv_std = new_cv_std
                         best_output = model_output_d
                         _fast_cv_improved = True
-                        _best_is_stacking = is_model_hint and "Stack ensemble" in (model_output_d or "")
+                        _best_is_stacking = "Stack ensemble" in (model_output_d or "")
                         if submission_path.exists():
                             best_submission_bytes = submission_path.read_bytes()
                         # Save cumulative snapshot of the winning state
