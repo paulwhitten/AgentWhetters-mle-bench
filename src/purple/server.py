@@ -4700,10 +4700,10 @@ def prepare_agent_card(url: str) -> AgentCard:
         examples=[],
     )
     return AgentCard(
-        name="ml_purple_agent",
+        name="AgentWhetter_MLE",
         description="OpenAI-powered ML coding agent for MLE-Bench evaluations.",
         url=url,
-        version="1.0.0",
+        version="1.0.1",
         default_input_modes=["text"],
         default_output_modes=["text"],
         capabilities=AgentCapabilities(streaming=True),
