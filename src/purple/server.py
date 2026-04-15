@@ -2683,40 +2683,41 @@ def _build_tool_system_prompt(
 def _build_iteration_hints(
     eda_meta: dict, data_dir: str,
 ) -> list[str]:
-    """Build a progressive 17-level hint ladder from eda_meta.
+    """Build a progressive 19-level hint ladder from eda_meta.
 
-    Returns up to 17 hints ordered by **Rules of ML** principles:
+    Returns up to 19 hints ordered by **Rules of ML** principles:
     - Level 0 is KITCHEN SINK (Rule #16): throw ALL applicable FE at the
       model in one shot and let the ensemble sort out what matters.
-    - Levels 1-12 are incremental FE hints, each adding one technique.
-    - Levels 13-16 are [MODEL] hints (Phase III optimization), demoted
-      to the end because the base 4-model ensemble is already strong.
+    - FE and MODEL hints are interleaved so MODEL hints are reachable
+      within the typical 9-12 round budget.
 
     Features accumulate via cumulative state: when a round improves CV,
     subsequent rounds build ON TOP of the winning feature set instead of
     restarting from raw data.
 
-    [MODEL]-prefixed hints skip feature engineering and only re-train (~40-60s),
-    while FE hints add to the cumulative feature set (~120-140s).
+    [MODEL]-prefixed hints skip feature engineering and only re-train,
+    while FE hints add to the cumulative feature set.
 
     Ordering rationale (Rules of ML priority):
-      Level  0: KITCHEN SINK (all FE)         — ~130s, Phase II Rule #16
-      Level  1: Data quality cleanup          — ~130s, foundational
-      Level  2: Target encoding               — ~130s, high-cardinality fix
-      Level  3: Feature interactions          — ~130s, core tree weakness
-      Level  4: Aggregation features          — ~130s, group-level signals
-      Level  5: Rank & power transforms       — ~130s, distribution fix
-      Level  6: Freq encoding + clipping      — ~130s, incremental
-      Level  7: Mutual info selection         — ~130s, noise removal
-      Level  8: PCA + K-Means clusters        — ~130s, rotated features
-      Level  9: Deviation-from-group          — ~130s, within-group anomalies
-      Level 10: Logical imputation + binning  — ~130s, dataset-specific
-      Level 11: Permutation pruning           — ~130s, post-hoc selection
-      Level 12: Pseudo-labeling               — ~130s, semi-supervised
-      Level 13: [MODEL] Low LR + subsampling  — ~40s, Phase III
-      Level 14: [MODEL] Stacking              — ~40s, Phase III
-      Level 15: [MODEL] Optuna tuning         — ~60s, Phase III
-      Level 16: [MODEL] Threshold / clipping  — ~40s, Phase III
+      Level  0: KITCHEN SINK (all FE)             — FE
+      Level  1: Data quality cleanup              — FE
+      Level  2: Target encoding                   — FE
+      Level  3: Error analysis — targeted features — FE
+      Level  4: Feature interactions              — FE
+      Level  5: [MODEL] Low LR + subsampling      — MODEL
+      Level  6: Aggregation features              — FE
+      Level  7: Logical imputation + binning      — FE
+      Level  8: [MODEL] Stacking                  — MODEL
+      Level  9: Rank & power transforms           — FE
+      Level 10: [MODEL] Optuna tuning             — MODEL
+      Level 11: Freq encoding + clipping          — FE
+      Level 12: [MODEL] Threshold / clipping      — MODEL
+      Level 13: Mutual info selection             — FE
+      Level 14: Permutation pruning               — FE
+      Level 15: Adversarial validation            — FE
+      Level 16: Deviation-from-group              — FE
+      Level 17: Pseudo-labeling                   — FE
+      Level 18: PCA + K-Means clusters            — FE
 
     References embedded in hints:
       - Chen & Guestrin (2016) XGBoost paper — learned missing-value splits

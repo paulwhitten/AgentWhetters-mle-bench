@@ -1,3 +1,9 @@
+# AgentWhetters MLE  Purple Agent
+
+This is a submission from **AgentWhtters**. See the [Purple Agent documentation](src/purple/README.md) for details on the agent implementation.
+
+---
+
 # A2A Agent Template
 
 A minimal template for building [A2A (Agent-to-Agent)](https://a2a-protocol.org/latest/) green agents compatible with the [AgentBeats](https://agentbeats.dev) platform.

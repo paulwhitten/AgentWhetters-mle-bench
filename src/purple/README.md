@@ -4,6 +4,22 @@ description: Hybrid deterministic and LLM-guided agent for MLE-Bench Green tabul
 ms.date: 2026-04-12
 ---
 
+## Abstract
+
+AgentWhetters MLE Purple is an autonomous ML agent that solves Kaggle-style
+tabular competitions end-to-end within a 600-second budget. It combines a fast
+deterministic baseline (36 feature engineering primitives, a four-model voting
+ensemble, and cross-validation) with LLM-guided iteration powered by
+gpt-4o-mini. A 19-level progressive hint ladder drives alternating feature
+engineering and model improvement rounds, each building on the best prior state.
+Key capabilities include automatic task detection (binary classification,
+multiclass, and regression), cumulative feature snapshots, stacking ensembles,
+Optuna hyperparameter tuning, and a fast-CV mode that triples iteration
+throughput. Its design embraces Google's Rules of Machine Learning,
+launching a working baseline first, iterating on measured errors, turning
+heuristics into features, and pruning unused signals. The agent requires
+no human intervention and produces a ready-to-submit `submission.csv`.
+
 ## Overview
 
 Purple is a tabular ML competition agent that combines deterministic
